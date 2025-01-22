@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donate Now</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #007bff;
+    }
+
+    p {
+      font-size: 16px;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 100%;
+    }
+
+    button {
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    #qrCode {
+      display: none;
+      margin: 20px auto;
+    }
+
+    .home-link {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      text-decoration: none;
+      color: #007bff;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .payment-buttons {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .payment-buttons button {
+      margin-right: 10px;
+    }
+
+    #confirmationForm {
+      display: none;
+    }
+
+    .notification {
+      font-size: 14px;
+      color: #ff5733;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="home-link">Return to Home</a>
+
+  <div class="container">
+    <h1>Support Our Cause</h1>
+    <p>Please fill out the form to proceed with your donation:</p>
+
+    <!-- Donation Form -->
+    <form id="donationForm">
+      <input type="text" id="name" placeholder="Your Name" required>
+      <input type="email" id="email" placeholder="Your Email" required>
+      <input type="number" id="amount" placeholder="Amount to Donate" min="1" required>
+      <button type="submit">Submit</button>
+    </form>
+
+    <!-- Payment Buttons -->
+    <div class="payment-buttons">
+      <button id="upiButton" onclick="handlePayment('UPI')">Pay via UPI</button>
+      <button id="qrButton" onclick="handlePayment('QR')">Pay via QR Code</button>
+      <button id="whatsappButton" onclick="handlePayment('WhatsApp')">Pay via WhatsApp</button>
+    </div>
+
+    <!-- QR Code Image -->
+    <img id="qrCode" alt="QR Code">
+
+    <!-- Payment Confirmation Form -->
+    <div id="confirmationForm">
+      <h2>Payment Confirmation</h2>
+      <p>Please confirm your payment by entering the payment reference or confirmation details:</p>
+      <form id="confirmationDetails">
+        <input type="text" id="paymentReference" placeholder="Payment Reference" required>
+        <button type="submit">Confirm Payment</button>
+      </form>
+    </div>
+
+    <!-- Positive Message Display -->
+    <div id="message" class="message"></div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Support Our Cause. All Rights Reserved.</p>
+  </footer>
+
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    emailjs.init( 'I1rxWpJVw86I8tUnJ'); // Replace with your EmailJS User ID
+
+    let paymentReferenceUsed = false;
+    let paymentModeSelected = false;
+
+    function handlePayment(paymentMethod) {
+      if (!paymentModeSelected) {
+        alert('Please submit the form first to choose a payment mode.');
+        return;
+      }
+
+      const name = document.getElementById('name').value;
+      const amount = document.getElementById('amount').value;
+
+      if (!name || !amount) {
+        alert('Please fill out the donation form first.');
+        return;
+      }
+
+      hideAllPaymentButtons();
+      document.getElementById('confirmationForm').style.display = 'block';
+
+      if (paymentMethod === 'UPI') {
+        const upiLink = `https://upi://pay?pa=tejashwinikr2005-1@okicici&pn=${encodeURIComponent(name)}&am=${amount}&tn=Donation`;
+        window.open(upiLink, '_blank');
+        showMessage('Thank you for choosing UPI! Please complete your payment.');
+      } else if (paymentMethod === 'QR') {
+        const qrData = `upi://pay?pa=tejashwinikr2005-1@okicici&pn=${encodeURIComponent(name)}&am=${amount}&tn=Donation`;
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrData)}&size=200x200`;
+        const qrCodeImg = document.getElementById('qrCode');
+        qrCodeImg.src = qrCodeUrl;
+        qrCodeImg.style.display = 'block';
+        showMessage('Thank you for choosing QR Code! Please complete your payment.');
+      } else if (paymentMethod === 'WhatsApp') {
+        const whatsappMessage = `Hello, I am ${name}. I would like to donate ₹${amount}. Please confirm the details.`;
+        const whatsappUrl = `https://wa.me/9345360363?text=${encodeURIComponent(whatsappMessage)}`;
+        window.open(whatsappUrl, '_blank');
+        showMessage('Thank you for reaching out via WhatsApp! Please confirm your payment after completing the transaction.');
+      }
+    }
+
+    function hideAllPaymentButtons() {
+      document.querySelector('.payment-buttons').style.display = 'none';
+    }
+
+    function showMessage(text) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+    }
+
+    function resetForm() {
+      document.getElementById('donationForm').reset();
+      document.getElementById('confirmationDetails').reset();
+      document.querySelector('.payment-buttons').style.display = 'none';
+      document.getElementById('confirmationForm').style.display = 'none';
+      document.getElementById('qrCode').style.display = 'none';
+      document.getElementById('message').textContent = '';
+      document.getElementById('notification').textContent = '';
+      paymentModeSelected = false;
+      paymentReferenceUsed = false;
+    }
+
+    document.getElementById('donationForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      paymentModeSelected = true;
+      document.querySelector('.payment-buttons').style.display = 'block';
+      document.getElementById('notification').textContent = 'Choose a payment mode to proceed.';
+    });
+
+    document.getElementById('confirmationDetails').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const name = document.getElementById('name').value;
+      const amount = document.getElementById('amount').value;
+      const paymentReference = document.getElementById('paymentReference').value;
+
+      if (!paymentReference || paymentReferenceUsed) {
+        alert('Payment reference invalid or already used.');
+        return;
+      }
+
+      const templateParams = {
+        name: name,
+        amount: amount,
+        email: email,
+        payment_reference: paymentReference,
+    
+       
+      };
+      emailjs.send("service_3ujl5xh","template_a0fx8tk",templateParams)
+      
+        .then(function (response) {
+          showMessage('Thank you for your donation! A confirmation email has been sent.');
+          paymentReferenceUsed = true;
+          setTimeout(resetForm, 5000); // Delay before resetting the form
+        }, function (error) {
+          showMessage('There was an error sending the email. Please try again later.');
+        });
+    });
+  </script>
+</body>
+</html>
